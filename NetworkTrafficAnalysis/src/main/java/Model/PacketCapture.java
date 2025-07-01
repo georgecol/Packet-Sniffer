@@ -49,6 +49,11 @@ public class PacketCapture {
 
         //Close handle after capture
         handle.close();
+        
+          
+        String[][] packets2 = packetsTo2dArray(packets);
+        
+        MainFrame f = new MainFrame(packets2);
     }
 
     public static void getInetAddress(String nicAddress) {
@@ -125,5 +130,22 @@ public class PacketCapture {
 
         //System.out.println("Build: " + packet.getBuilder().build());
 
+    }
+    
+      public static String[][] packetsTo2dArray(HashMap<Integer, IpV4Packet> packets) {
+        String[][] packetArr = new String[packets.size()][];
+        int i = 0;
+        for (HashMap.Entry<Integer, IpV4Packet> entry : packets.entrySet()) {
+            IpV4Packet currPacket = entry.getValue();
+            packetArr[i] = new String[]{
+                currPacket.getHeader().getSrcAddr().toString(),
+                currPacket.getHeader().getDstAddr().toString(),
+                currPacket.getHeader().getProtocol().toString() + ""
+                //(String)currPacket.getHeader().getTotalLengthAsInt()+ ""
+            };
+            //packetArr[i] = currPacket.toStringArray();  // Convert Packet to String[]
+            i++;
+        }
+        return packetArr;
     }
 }
