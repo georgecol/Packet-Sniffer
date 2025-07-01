@@ -6,22 +6,19 @@ package Controller;
 
 import Model.PacketCapture;
 import View.MainFrame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  *
  * @author George
  */
-public class CaptureStart {
+public class CaptureStart implements ActionListener{
     
-    public static void main(String[] args) {
-        String nic = "192.168.0.155";
-        PacketCapture pc = new PacketCapture(nic);
-        String[][] packetArr = pc.packetsTo2dArray();
-        
-        MainFrame f = new MainFrame(packetArr);
-        
-        f.revalidate();
-        
+ 
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
         
     }
 }

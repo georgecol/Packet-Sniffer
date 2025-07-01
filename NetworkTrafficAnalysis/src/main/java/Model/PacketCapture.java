@@ -129,11 +129,11 @@ public class PacketCapture {
     
       public String[][] packetsTo2dArray() {
         String[][] packetArr = new String[packets.size()][];
-        int i = 0;
+        int i = 1;
         for (HashMap.Entry<Integer, ExtractedPacket> entry : packets.entrySet()) {
             ExtractedPacket currPacket = entry.getValue();
             String index = String.valueOf(i); 
-           packetArr[i] = new String[]{
+           packetArr[i-1] = new String[]{
                 index,
                 currPacket.getSrcIp().toString(),
                 currPacket.getDstIp().toString(),
