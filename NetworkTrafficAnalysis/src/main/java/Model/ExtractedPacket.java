@@ -11,14 +11,21 @@ import org.pcap4j.packet.namednumber.IpNumber;
  *
  * @author George
  */
-public class Packet {
+public class ExtractedPacket {
 
     private IpNumber protocol;
     private InetAddress srcIp;
     private InetAddress dstIp;
     private int totalLength;
 
-    public Packet(IpNumber protocol, InetAddress srcIp, InetAddress dstIp, int totalLength) {
+    public ExtractedPacket(){
+        this.protocol = null;
+        this.srcIp = null;
+        this.dstIp = null;
+        this.totalLength = 0;
+    }
+    
+    public ExtractedPacket(IpNumber protocol, InetAddress srcIp, InetAddress dstIp, int totalLength) {
         this.protocol = protocol;
         this.srcIp = srcIp;
         this.dstIp = dstIp;

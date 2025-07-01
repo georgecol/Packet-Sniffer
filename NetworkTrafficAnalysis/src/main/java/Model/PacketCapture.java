@@ -17,6 +17,7 @@ import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.IpV4Packet.IpV4Header;
 import org.pcap4j.packet.Packet;
 
 /**
@@ -30,21 +31,35 @@ public class PacketCapture {
     public static Packet packet;
     public static int timeout = 1000;
     public static boolean packetCaptured;
-    public static HashMap<Integer, Packet> packets;
+    public static HashMap<Integer, ExtractedPacket> packets;
 
-    public static void main(String[] args) {
-
+    public PacketCapture(String nicAddress) {
         packets = new HashMap<>();
+        //home 192.168.0.155
+        //away 
+        // String nicAddress = "192.168.0.155"; // Current ethernet NIC address, in future can replace and get dynamically depending on chosen NIC
 
-        String nicAddress = "192.168.0.155"; // Current ethernet NIC address, in future can replace and get dynamically depending on chosen NIC
+        getInetAddress(nicAddress);
+
+        //Open Pcap Handle
+        openHandle();
+
+        //Capture packets (10 total)
+        capturePackets(10);
+
+        //Close handle after capture
+        handle.close();
+    }
+
+    public static void getInetAddress(String nicAddress) {
         try {
             addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
-
         } catch (UnknownHostException e) {
             System.out.println(e.getMessage());
         }
+    }
 
-        //Open Pcap Handle
+    public static void openHandle() {
         try {
             PcapNetworkInterface nif = Pcaps.getDevByAddress(addr); // Find the network interface that you want to capture packets
             int snapLen = 65536;
@@ -53,8 +68,10 @@ public class PacketCapture {
         } catch (PcapNativeException e) {
             System.out.println(e.getMessage());
         }
-        //Capture packet
-        int packetLimit = 10;
+    }
+
+    public void capturePackets(int packetLimit) {
+        packetLimit = 10;
         for (int i = 1; i <= packetLimit; i++) {
             System.out.println("Packet #" + i);
             packetCaptured = true;
@@ -68,28 +85,45 @@ public class PacketCapture {
             }
 
             //Print Packet Information for each packet
+            
+            
             if (packetCaptured) {
                 IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
 
                 if (ipV4Packet != null) { // Checks if packet is Ip , if packetcaptured and not ip , dont attempt to display , because build is only for ipv4, will give error
-                    packets.put(i, packet); // store in packets map
+                    ExtractedPacket extractedPacket = extractPacket(ipV4Packet); // Format with my own packet class
+                    packets.put(i, extractedPacket); // store in packets map
                     displayCapturedPacket(ipV4Packet);
                 } else {
-                    System.out.println("Captured non-IPv4 packet: " + packet);
+                    System.out.println("Captured non-IPv4 packet " );
                 }
             }
 
         }
-        handle.close();
+
     }
 
+    public ExtractedPacket extractPacket(IpV4Packet ippac){
+        ExtractedPacket exP = new ExtractedPacket();
+        IpV4Header header = ippac.getHeader();
+        
+        exP.setProtocol(header.getProtocol());
+        exP.setDstIp(header.getDstAddr());
+        exP.setSrcIp(header.getSrcAddr());
+        exP.setTotalLength(header.getTotalLengthAsInt());
+        
+        return exP;
+    }
+    
     public static void displayCapturedPacket(IpV4Packet packet) {
-//        System.out.println("Packet Captured!");
-//        System.out.print("  SRC: " + packet.getHeader().getSrcAddr());
-//        System.out.print("  DST: " + packet.getHeader().getDstAddr());
-//        System.out.print("  Protocol: " + packet.getHeader().getProtocol());
+        System.out.println("Packet Captured!");
+        System.out.print("  SRC: " + packet.getHeader().getSrcAddr());
+        System.out.print("  DST: " + packet.getHeader().getDstAddr());
+        System.out.print("  Protocol: " + packet.getHeader().getProtocol());
+        System.out.print("  Length: "+packet.getHeader().getTotalLengthAsInt());
+        System.out.println("");
 
-        System.out.println("Build: " + packet.getBuilder().build());
+        //System.out.println("Build: " + packet.getBuilder().build());
 
     }
 }
