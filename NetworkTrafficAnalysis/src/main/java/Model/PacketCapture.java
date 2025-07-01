@@ -5,7 +5,6 @@
 package Model;
 
 import java.io.EOFException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -25,13 +24,13 @@ import org.pcap4j.packet.Packet;
  * @author George
  */
 public class PacketCapture {
-
+   
     public static InetAddress addr;
     public static PcapHandle handle;
     public static Packet packet;
     public static int timeout = 1000;
     public static boolean packetCaptured;
-    public static HashMap<Integer, ExtractedPacket> packets;
+    private static HashMap<Integer, ExtractedPacket> packets;
 
     public PacketCapture(String nicAddress) {
         packets = new HashMap<>();
@@ -49,14 +48,10 @@ public class PacketCapture {
 
         //Close handle after capture
         handle.close();
-        
-          
-        String[][] packets2 = packetsTo2dArray(packets);
-        
-        MainFrame f = new MainFrame(packets2);
+       
     }
 
-    public static void getInetAddress(String nicAddress) {
+    private static void getInetAddress(String nicAddress) {
         try {
             addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
         } catch (UnknownHostException e) {
@@ -64,7 +59,7 @@ public class PacketCapture {
         }
     }
 
-    public static void openHandle() {
+    private static void openHandle() {
         try {
             PcapNetworkInterface nif = Pcaps.getDevByAddress(addr); // Find the network interface that you want to capture packets
             int snapLen = 65536;
@@ -75,7 +70,7 @@ public class PacketCapture {
         }
     }
 
-    public void capturePackets(int packetLimit) {
+    private void capturePackets(int packetLimit) {
         packetLimit = 10;
         for (int i = 1; i <= packetLimit; i++) {
             System.out.println("Packet #" + i);
@@ -108,7 +103,7 @@ public class PacketCapture {
 
     }
 
-    public ExtractedPacket extractPacket(IpV4Packet ippac){
+    private ExtractedPacket extractPacket(IpV4Packet ippac){
         ExtractedPacket exP = new ExtractedPacket();
         IpV4Header header = ippac.getHeader();
         
@@ -120,7 +115,7 @@ public class PacketCapture {
         return exP;
     }
     
-    public static void displayCapturedPacket(IpV4Packet packet) {
+    private static void displayCapturedPacket(IpV4Packet packet) {
         System.out.println("Packet Captured!");
         System.out.print("  SRC: " + packet.getHeader().getSrcAddr());
         System.out.print("  DST: " + packet.getHeader().getDstAddr());
@@ -132,15 +127,18 @@ public class PacketCapture {
 
     }
     
-      public static String[][] packetsTo2dArray(HashMap<Integer, IpV4Packet> packets) {
+      public String[][] packetsTo2dArray() {
         String[][] packetArr = new String[packets.size()][];
         int i = 0;
-        for (HashMap.Entry<Integer, IpV4Packet> entry : packets.entrySet()) {
-            IpV4Packet currPacket = entry.getValue();
-            packetArr[i] = new String[]{
-                currPacket.getHeader().getSrcAddr().toString(),
-                currPacket.getHeader().getDstAddr().toString(),
-                currPacket.getHeader().getProtocol().toString() + ""
+        for (HashMap.Entry<Integer, ExtractedPacket> entry : packets.entrySet()) {
+            ExtractedPacket currPacket = entry.getValue();
+            String index = String.valueOf(i); 
+           packetArr[i] = new String[]{
+                index,
+                currPacket.getSrcIp().toString(),
+                currPacket.getDstIp().toString(),
+                currPacket.getProtocol().toString(),
+                String.valueOf(currPacket.getTotalLength()) + ""
                 //(String)currPacket.getHeader().getTotalLengthAsInt()+ ""
             };
             //packetArr[i] = currPacket.toStringArray();  // Convert Packet to String[]

@@ -5,6 +5,7 @@
 package Controller;
 
 import Model.PacketCapture;
+import View.MainFrame;
 
 /**
  *
@@ -15,5 +16,12 @@ public class CaptureStart {
     public static void main(String[] args) {
         String nic = "192.168.0.155";
         PacketCapture pc = new PacketCapture(nic);
+        String[][] packetArr = pc.packetsTo2dArray();
+        
+        MainFrame f = new MainFrame(packetArr);
+        
+        f.revalidate();
+        
+        
     }
 }
