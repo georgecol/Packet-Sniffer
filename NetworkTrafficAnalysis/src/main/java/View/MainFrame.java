@@ -4,11 +4,9 @@
  */
 package View;
 
+import Model.*;
 import Controller.EventController;
 import Model.ExtractedPacket;
-import Model.PacketCapture;
-import java.awt.BorderLayout;
-import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -17,30 +15,29 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import org.pcap4j.packet.IpV4Packet;
-import org.pcap4j.packet.Packet;
 
 /**
  *
  * @author gcoll
  */
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame implements PacketListenerCallback {
 
     private JTable packetTable;
+    DefaultTableModel tableModel;
     private JButton startBtn;
     private JButton stopBtn;
     private JPanel btnPanel;
     private EventController controller;
-    
-    public MainFrame(String[][] packets,EventController controller) {
+    private int packetIndex = 1;
+
+    public MainFrame(String[][] packets, EventController controller) {
 
         this.setTitle("Network Traffic Analyser");
         this.setSize(800, 600);
         this.setLocationRelativeTo(null);  //Place in middle of monitor
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-    
-        initTable(packets);
-        initButtons();
-        
+        initUI(packets);
+
         this.setVisible(true);
     }
 
@@ -52,10 +49,16 @@ public class MainFrame extends JFrame {
         //new MainFrame(testPackets);
     }
 
-    public void initTable(String[][] packets) {
-        String[] columnNames = {"Packet#", "Source IP", "Destination IP","Protocol","Length"};
+    private void initUI(String[][] packets) {
+        initTable(packets);
+        initButtons();
 
-        DefaultTableModel tableModel = new DefaultTableModel(packets, columnNames) {
+    }
+
+    public void initTable(String[][] packets) {
+        String[] columnNames = {"Packet#", "Source IP", "Destination IP", "Protocol", "Length"};
+
+        tableModel = new DefaultTableModel(packets, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Make table read-only
@@ -71,27 +74,34 @@ public class MainFrame extends JFrame {
         JScrollPane scrollPane = new JScrollPane(packetTable);
         this.add(scrollPane);
     }
-    
-    //Display whole selected packet
-    public void initTable2(IpV4Packet packet){
-        
-    }
-    
-    //Buttons
 
+    //Buttons
     private void initButtons() {
-       startBtn = new JButton("Start");
-       stopBtn = new JButton ("Stop");
-       btnPanel = new JPanel();
-       
-       startBtn.addActionListener(controller);
-       stopBtn.addActionListener(controller);
-       
-       btnPanel.add(startBtn);
-       btnPanel.add(stopBtn);
-       
+        startBtn = new JButton("Start");
+        stopBtn = new JButton("Stop");
+        btnPanel = new JPanel();
+
+        startBtn.addActionListener(controller);
+        stopBtn.addActionListener(controller);
+
+        btnPanel.add(startBtn);
+        btnPanel.add(stopBtn);
+
     }
-    
-    
+
+    @Override
+    public void onPacketCaptured(ExtractedPacket packet) {
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            tableModel.addRow(new Object[]{
+                packetIndex++,
+                packet.getSrcIp().getHostAddress(),
+                packet.getDstIp().getHostAddress(),
+                packet.getProtocol().name(),
+                packet.getTotalLength()
+            });
+
+            packetTable.scrollRectToVisible(packetTable.getCellRect(tableModel.getRowCount() - 1, 0, true));
+        });
+    }
 
 }

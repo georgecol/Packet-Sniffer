@@ -15,7 +15,7 @@ import Model.PacketListenerCallback;
  *
  * @author George
  */
-public class EventController implements ActionListener,PacketListenerCallback{
+public class EventController implements ActionListener{
     
  
 
@@ -34,8 +34,5 @@ public class EventController implements ActionListener,PacketListenerCallback{
     }
 
     //When 
-    @Override
-    public void onPacketCaptured(ExtractedPacket packet) {
-        
-    }
+    
 }

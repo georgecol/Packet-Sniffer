@@ -9,15 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PacketListener;
-import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.core.Pcaps;
-import org.pcap4j.core.PcapHandle;
-import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.*;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.IpV4Packet.IpV4Header;
@@ -37,6 +29,7 @@ public class PacketCapture {
     private static HashMap<Integer, ExtractedPacket> packets;
 
     private static PacketListenerCallback listener;
+    private String nicAddress;
 
     //private boolean captured;
     public PacketCapture(String nicAddress) {
@@ -44,28 +37,15 @@ public class PacketCapture {
         //home 192.168.0.155
         //away 
         // String nicAddress = "192.168.0.155"; // Current ethernet NIC address, in future can replace and get dynamically depending on chosen NIC
-
+        this.nicAddress = nicAddress;
         getInetAddress(nicAddress);
-
-        //Open Pcap Handle
-        openHandle();
-
         //Capture packets (10 total)
         //capturePackets(10);
         //Close handle after capture
-        handle.close();
 
     }
 
-    private static void getInetAddress(String nicAddress) {
-        try {
-            addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
-        } catch (UnknownHostException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private static void openHandle() {
+    public static void startCapture() {
         try {
             PcapNetworkInterface nif = Pcaps.getDevByAddress(addr); // Find the network interface that you want to capture packets
             int snapLen = 65536;
@@ -190,4 +170,13 @@ public class PacketCapture {
     public static void setPacketListener(PacketListenerCallback callback) {
         listener = callback;
     }
+    
+      private static void getInetAddress(String nicAddress) {
+        try {
+            addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
+        } catch (UnknownHostException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    
 }
