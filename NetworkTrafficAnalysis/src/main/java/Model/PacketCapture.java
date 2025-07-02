@@ -136,16 +136,6 @@ public class PacketCapture {
         return exP;
     }
 
-    private static void displayCapturedPacket(IpV4Packet packet) {
-        System.out.println("Packet Captured!");
-        System.out.print("  SRC: " + packet.getHeader().getSrcAddr());
-        System.out.print("  DST: " + packet.getHeader().getDstAddr());
-        System.out.print("  Protocol: " + packet.getHeader().getProtocol());
-        System.out.print("  Length: " + packet.getHeader().getTotalLengthAsInt());
-        System.out.println("");
-
-        //System.out.println("Build: " + packet.getBuilder().build());
-    }
 
     public String[][] packetsTo2dArray() {
         String[][] packetArr = new String[packets.size()][];
