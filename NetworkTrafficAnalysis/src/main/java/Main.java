@@ -1,4 +1,5 @@
 
+import Controller.EventController;
 import Model.PacketCapture;
 import View.MainFrame;
 
@@ -16,8 +17,8 @@ public class Main {
         String nic = "192.168.0.155";
         PacketCapture pc = new PacketCapture(nic);
         String[][] packetArr = pc.packetsTo2dArray();
-        
-        MainFrame f = new MainFrame(packetArr);
+        EventController controller = new EventController();
+        MainFrame f = new MainFrame(packetArr,controller);
       
         
     }

@@ -4,15 +4,19 @@
  */
 package View;
 
+import Controller.EventController;
 import Model.ExtractedPacket;
 import Model.PacketCapture;
 import java.awt.BorderLayout;
 import java.util.HashMap;
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 
 /**
@@ -21,9 +25,13 @@ import org.pcap4j.packet.Packet;
  */
 public class MainFrame extends JFrame {
 
-    JTable packetTable;
-
-    public MainFrame(String[][] packets) {
+    private JTable packetTable;
+    private JButton startBtn;
+    private JButton stopBtn;
+    private JPanel btnPanel;
+    private EventController controller;
+    
+    public MainFrame(String[][] packets,EventController controller) {
 
         this.setTitle("Network Traffic Analyser");
         this.setSize(800, 600);
@@ -31,6 +39,8 @@ public class MainFrame extends JFrame {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     
         initTable(packets);
+        initButtons();
+        
         this.setVisible(true);
     }
 
@@ -39,7 +49,7 @@ public class MainFrame extends JFrame {
             {"1", "192.168.0.1", "8.8.8.8"},
             {"2", "192.168.0.2", "1.1.1.1"}
         };
-        new MainFrame(testPackets);
+        //new MainFrame(testPackets);
     }
 
     public void initTable(String[][] packets) {
@@ -61,5 +71,27 @@ public class MainFrame extends JFrame {
         JScrollPane scrollPane = new JScrollPane(packetTable);
         this.add(scrollPane);
     }
+    
+    //Display whole selected packet
+    public void initTable2(IpV4Packet packet){
+        
+    }
+    
+    //Buttons
+
+    private void initButtons() {
+       startBtn = new JButton("Start");
+       stopBtn = new JButton ("Stop");
+       btnPanel = new JPanel();
+       
+       startBtn.addActionListener(controller);
+       stopBtn.addActionListener(controller);
+       
+       btnPanel.add(startBtn);
+       btnPanel.add(stopBtn);
+       
+    }
+    
+    
 
 }

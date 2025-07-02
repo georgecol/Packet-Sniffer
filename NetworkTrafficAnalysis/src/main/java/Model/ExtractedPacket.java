@@ -5,6 +5,7 @@
 package Model;
 
 import java.net.InetAddress;
+import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.namednumber.IpNumber;
 
 /**
@@ -17,14 +18,15 @@ public class ExtractedPacket {
     private InetAddress srcIp;
     private InetAddress dstIp;
     private int totalLength;
+    private IpV4Packet originalPacket;
 
-    public ExtractedPacket(){
+    public ExtractedPacket() {
         this.protocol = null;
         this.srcIp = null;
         this.dstIp = null;
         this.totalLength = 0;
     }
-    
+
     public ExtractedPacket(IpNumber protocol, InetAddress srcIp, InetAddress dstIp, int totalLength) {
         this.protocol = protocol;
         this.srcIp = srcIp;
@@ -62,5 +64,13 @@ public class ExtractedPacket {
 
     public void setTotalLength(int totalLength) {
         this.totalLength = totalLength;
+    }
+
+    public IpV4Packet getOriginalPacket() {
+        return originalPacket;
+    }
+
+    public void setOriginalPacket(IpV4Packet originalPacket) {
+        this.originalPacket = originalPacket;
     }
 }

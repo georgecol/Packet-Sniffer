@@ -9,7 +9,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 import org.pcap4j.core.NotOpenException;
+import org.pcap4j.core.PacketListener;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 import org.pcap4j.core.PcapHandle;
@@ -24,7 +28,7 @@ import org.pcap4j.packet.Packet;
  * @author George
  */
 public class PacketCapture {
-   
+
     public static InetAddress addr;
     public static PcapHandle handle;
     public static Packet packet;
@@ -32,6 +36,9 @@ public class PacketCapture {
     public static boolean packetCaptured;
     private static HashMap<Integer, ExtractedPacket> packets;
 
+    private static PacketListenerCallback listener;
+
+    //private boolean captured;
     public PacketCapture(String nicAddress) {
         packets = new HashMap<>();
         //home 192.168.0.155
@@ -44,11 +51,10 @@ public class PacketCapture {
         openHandle();
 
         //Capture packets (10 total)
-        capturePackets(10);
-
+        //capturePackets(10);
         //Close handle after capture
         handle.close();
-       
+
     }
 
     private static void getInetAddress(String nicAddress) {
@@ -65,11 +71,48 @@ public class PacketCapture {
             int snapLen = 65536;
             PromiscuousMode mode = PromiscuousMode.PROMISCUOUS;
             handle = nif.openLive(snapLen, mode, timeout);
+
+            //Live Capture
+            new Thread(() -> {
+                try {
+                    handle.loop(-1, new PacketListener() {
+                        int packetCount = 0;
+
+                        @Override
+                        public void gotPacket(Packet packet) {
+                            IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
+                            if (ipV4Packet != null) {
+                                ExtractedPacket extractedPacket = extractPacket(ipV4Packet);
+                                packets.put(packetCount, extractedPacket);
+                                packetCount++;
+                                //Notify listeners (eventcontroller)
+                                if (listener != null) {
+                                    listener.onPacketCaptured(extractedPacket);
+                                }
+                                // Optional: stop after 100 packets for testing
+                                //Hard coded, not changeable
+                                if (packetCount >= 100) {
+                                    try {
+                                        handle.breakLoop();
+                                    } catch (NotOpenException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                } catch (InterruptedException | PcapNativeException | NotOpenException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
         } catch (PcapNativeException e) {
             System.out.println(e.getMessage());
         }
     }
 
+    //Not used
     private void capturePackets(int packetLimit) {
         packetLimit = 10;
         for (int i = 1; i <= packetLimit; i++) {
@@ -85,8 +128,6 @@ public class PacketCapture {
             }
 
             //Print Packet Information for each packet
-            
-            
             if (packetCaptured) {
                 IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
 
@@ -95,7 +136,7 @@ public class PacketCapture {
                     packets.put(i, extractedPacket); // store in packets map
                     displayCapturedPacket(ipV4Packet);
                 } else {
-                    System.out.println("Captured non-IPv4 packet " );
+                    System.out.println("Captured non-IPv4 packet ");
                 }
             }
 
@@ -103,47 +144,50 @@ public class PacketCapture {
 
     }
 
-    private ExtractedPacket extractPacket(IpV4Packet ippac){
+    private static ExtractedPacket extractPacket(IpV4Packet ippac) {
         ExtractedPacket exP = new ExtractedPacket();
         IpV4Header header = ippac.getHeader();
-        
+
+        exP.setOriginalPacket(ippac);
         exP.setProtocol(header.getProtocol());
         exP.setDstIp(header.getDstAddr());
         exP.setSrcIp(header.getSrcAddr());
         exP.setTotalLength(header.getTotalLengthAsInt());
-        
         return exP;
     }
-    
+
     private static void displayCapturedPacket(IpV4Packet packet) {
         System.out.println("Packet Captured!");
         System.out.print("  SRC: " + packet.getHeader().getSrcAddr());
         System.out.print("  DST: " + packet.getHeader().getDstAddr());
         System.out.print("  Protocol: " + packet.getHeader().getProtocol());
-        System.out.print("  Length: "+packet.getHeader().getTotalLengthAsInt());
+        System.out.print("  Length: " + packet.getHeader().getTotalLengthAsInt());
         System.out.println("");
 
         //System.out.println("Build: " + packet.getBuilder().build());
-
     }
-    
-      public String[][] packetsTo2dArray() {
+
+    public String[][] packetsTo2dArray() {
         String[][] packetArr = new String[packets.size()][];
         int i = 1;
         for (HashMap.Entry<Integer, ExtractedPacket> entry : packets.entrySet()) {
             ExtractedPacket currPacket = entry.getValue();
-            String index = String.valueOf(i); 
-           packetArr[i-1] = new String[]{
+            String index = String.valueOf(i);
+            packetArr[i - 1] = new String[]{
                 index,
                 currPacket.getSrcIp().toString(),
                 currPacket.getDstIp().toString(),
                 currPacket.getProtocol().toString(),
                 String.valueOf(currPacket.getTotalLength()) + ""
-                //(String)currPacket.getHeader().getTotalLengthAsInt()+ ""
+            //(String)currPacket.getHeader().getTotalLengthAsInt()+ ""
             };
             //packetArr[i] = currPacket.toStringArray();  // Convert Packet to String[]
             i++;
         }
         return packetArr;
+    }
+
+    public static void setPacketListener(PacketListenerCallback callback) {
+        listener = callback;
     }
 }
