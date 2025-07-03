@@ -18,14 +18,14 @@ import Model.PacketListenerCallback;
 public class EventController implements ActionListener{
     
  
-
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         Command cmd = Command.valueOf(e.getActionCommand());
         
         switch(cmd){
             case START:
-                
+                //pc.startCapture();
                 break;
             case STOP:
                 

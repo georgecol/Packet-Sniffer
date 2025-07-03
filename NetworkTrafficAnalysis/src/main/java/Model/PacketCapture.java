@@ -6,6 +6,7 @@ package Model;
 
 import java.io.EOFException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
@@ -114,7 +115,7 @@ public class PacketCapture {
                 if (ipV4Packet != null) { // Checks if packet is Ip , if packetcaptured and not ip , dont attempt to display , because build is only for ipv4, will give error
                     ExtractedPacket extractedPacket = extractPacket(ipV4Packet); // Format with my own packet class
                     packets.put(i, extractedPacket); // store in packets map
-                    displayCapturedPacket(ipV4Packet);
+
                 } else {
                     System.out.println("Captured non-IPv4 packet ");
                 }
@@ -135,7 +136,6 @@ public class PacketCapture {
         exP.setTotalLength(header.getTotalLengthAsInt());
         return exP;
     }
-
 
     public String[][] packetsTo2dArray() {
         String[][] packetArr = new String[packets.size()][];
@@ -160,13 +160,14 @@ public class PacketCapture {
     public static void setPacketListener(PacketListenerCallback callback) {
         listener = callback;
     }
-    
-      private static void getInetAddress(String nicAddress) {
+
+    private static void getInetAddress(String nicAddress) {
         try {
             addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
+            
         } catch (UnknownHostException e) {
             System.out.println(e.getMessage());
         }
     }
-    
+
 }
