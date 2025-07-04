@@ -9,7 +9,7 @@ package Controller;
  * @author George
  */
 //Button command list on GUI
-enum Command {
+public enum Command {
     START,
     STOP;
 }

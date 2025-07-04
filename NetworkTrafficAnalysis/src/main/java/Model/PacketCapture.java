@@ -22,6 +22,7 @@ import org.pcap4j.packet.Packet;
  */
 public class PacketCapture {
 
+    private static Thread captureThread;
     public static InetAddress addr;
     public static PcapHandle handle;
     public static Packet packet;
@@ -47,6 +48,7 @@ public class PacketCapture {
     }
 
     public static void startCapture() {
+        System.out.println("Starting capture");
         try {
             PcapNetworkInterface nif = Pcaps.getDevByAddress(addr); // Find the network interface that you want to capture packets
             int snapLen = 65536;
@@ -54,7 +56,7 @@ public class PacketCapture {
             handle = nif.openLive(snapLen, mode, timeout);
 
             //Live Capture
-            new Thread(() -> {
+            captureThread = new Thread(() -> {
                 try {
                     handle.loop(-1, new PacketListener() {
                         int packetCount = 0;
@@ -86,10 +88,31 @@ public class PacketCapture {
                 } catch (InterruptedException | PcapNativeException | NotOpenException e) {
                     e.printStackTrace();
                 }
-            }).start();
+            });
 
         } catch (PcapNativeException e) {
             System.out.println(e.getMessage());
+        }
+        captureThread.start();
+    }
+
+    public static void stopCapture() {
+        System.out.println("Stopping Capture");
+        if (handle.isOpen()) {
+            try {
+                handle.breakLoop();
+            } catch (NotOpenException e) {
+                System.out.println("Already stopped");
+            }
+        }
+        if (captureThread != null && captureThread.isAlive()) {
+            captureThread.interrupt();
+            try {
+                captureThread.join(1000); // Waits a second for thread to terminate
+                System.out.println("Capture thread stopped");
+            } catch (InterruptedException e) {
+                System.out.println("Interrupted while waiting for thread to stop");
+            }
         }
     }
 
@@ -164,7 +187,7 @@ public class PacketCapture {
     private static void getInetAddress(String nicAddress) {
         try {
             addr = InetAddress.getByName(nicAddress); // get address to pass to pcap
-            
+
         } catch (UnknownHostException e) {
             System.out.println(e.getMessage());
         }

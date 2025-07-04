@@ -5,7 +5,7 @@
 package View;
 
 import Model.*;
-import Controller.EventController;
+import Controller.*;
 import Model.ExtractedPacket;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -37,8 +37,9 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
     private GridBagConstraints gbc;
     private int packetCount = 0;
 
-    public MainFrame( EventController controller) {
+    public MainFrame(EventController controller) {
         this.setTitle("Network Traffic Analyser");
+        this.controller = controller;
         this.setSize(800, 600);
         this.setLocationRelativeTo(null);  //Place in middle of monitor
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -100,7 +101,9 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         btnPanel = new JPanel();
 
         startBtn.addActionListener(controller);
+        startBtn.setActionCommand(Command.START.name());
         stopBtn.addActionListener(controller);
+        stopBtn.setActionCommand(Command.STOP.name()); 
         gbc.gridy = 2;
         btnPanel.add(startBtn);
         btnPanel.add(stopBtn);

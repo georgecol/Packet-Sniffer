@@ -14,13 +14,11 @@ import View.MainFrame;
 public class Main {
 
     public static void main(String[] args) {
-        String nic = "192.168.0.155";
-        PacketCapture pc = new PacketCapture(nic);
+        
         //String[][] packetArr = pc.packetsTo2dArray();
         EventController controller = new EventController();
-        MainFrame f = new MainFrame( controller);
+        MainFrame f = new MainFrame(controller);
         PacketCapture.setPacketListener(f);
-        pc.startCapture();
 
     }
     

@@ -5,6 +5,7 @@
 package Controller;
 
 import Model.ExtractedPacket;
+import Model.PacketCapture;
 import View.MainFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,24 +16,25 @@ import Model.PacketListenerCallback;
  *
  * @author George
  */
-public class EventController implements ActionListener{
-    
- 
+public class EventController implements ActionListener {
+
+    private PacketCapture pc;
     
     @Override
     public void actionPerformed(ActionEvent e) {
         Command cmd = Command.valueOf(e.getActionCommand());
-        
-        switch(cmd){
+
+        switch (cmd) {
             case START:
-                //pc.startCapture();
+                String nic = "192.168.0.155";
+                pc = new PacketCapture(nic);
+                pc.startCapture();
                 break;
             case STOP:
-                
+                pc.stopCapture();
                 break;
         }
     }
 
     //When 
-    
 }
