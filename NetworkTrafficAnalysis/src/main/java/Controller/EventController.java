@@ -4,13 +4,11 @@
  */
 package Controller;
 
-import Model.ExtractedPacket;
 import Model.PacketCapture;
 import View.MainFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.EventListener;
-import Model.PacketListenerCallback;
+
 
 /**
  *
@@ -19,22 +17,59 @@ import Model.PacketListenerCallback;
 public class EventController implements ActionListener {
 
     private PacketCapture pc;
-    
+    private MainFrame mainFrame;
+    private String protocolFilter = "All";
+    private String selectedProtocol;
+
+    public EventController(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Command cmd = Command.valueOf(e.getActionCommand());
 
         switch (cmd) {
             case START:
+                selectedProtocol = mainFrame.getFilterPanel().getSelectedProtocol(); // Get protocol
+                setProtocolFilter(selectedProtocol); // Set it in controller
+                System.out.println("Selected Protocol: " + selectedProtocol); // Debug print
+
                 String nic = "192.168.0.155";
-                pc = new PacketCapture(nic);
+                pc = new PacketCapture(nic, this);
+                PacketCapture.setPacketListener(mainFrame);
                 pc.startCapture();
                 break;
             case STOP:
-                pc.stopCapture();
+                if (pc != null) {
+                    pc.stopCapture();
+                }
+                break;
+            case RESET:
+                if (mainFrame != null) {
+                    mainFrame.resetTable();
+                }
+                //Clear table? or Stop and start
+                break;
+            case APPLY:
+                selectedProtocol = mainFrame.getFilterPanel().getSelectedProtocol(); // Get protocol
+                setProtocolFilter(selectedProtocol); // Set it in controller
+                System.out.println("Selected Protocol: " + selectedProtocol); // Debug print
+                
+                
                 break;
         }
     }
 
-    //When 
+    public void setProtocolFilter(String protocol) {
+        this.protocolFilter = protocol;
+    }
+
+    public String getProtocolFilter() {
+        return this.protocolFilter;
+    }
+
+    public void setMainFrame(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
+    }
 }

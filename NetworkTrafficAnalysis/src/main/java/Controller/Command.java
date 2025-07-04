@@ -11,5 +11,8 @@ package Controller;
 //Button command list on GUI
 public enum Command {
     START,
-    STOP;
+    STOP,
+    RESET,
+    APPLY,
+    FILTER;
 }

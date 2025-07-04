@@ -4,6 +4,7 @@
  */
 package Model;
 
+import Controller.EventController;
 import java.io.EOFException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -22,6 +23,7 @@ import org.pcap4j.packet.Packet;
  */
 public class PacketCapture {
 
+    private final EventController controller;
     private static Thread captureThread;
     public static InetAddress addr;
     public static PcapHandle handle;
@@ -29,26 +31,19 @@ public class PacketCapture {
     public static int timeout = 1000;
     public static boolean packetCaptured;
     private static HashMap<Integer, ExtractedPacket> packets;
-
     private static PacketListenerCallback listener;
-    private String nicAddress;
 
     //private boolean captured;
-    public PacketCapture(String nicAddress) {
+    public PacketCapture(String nicAddress, EventController controller) {
+        this.controller = controller;
         packets = new HashMap<>();
-        //home 192.168.0.155
-        //away 
-        // String nicAddress = "192.168.0.155"; // Current ethernet NIC address, in future can replace and get dynamically depending on chosen NIC
-        this.nicAddress = nicAddress;
         getInetAddress(nicAddress);
-        //Capture packets (10 total)
-        //capturePackets(10);
-        //Close handle after capture
 
     }
 
-    public static void startCapture() {
+    public void startCapture() {
         System.out.println("Starting capture");
+
         try {
             PcapNetworkInterface nif = Pcaps.getDevByAddress(addr); // Find the network interface that you want to capture packets
             int snapLen = 65536;
@@ -64,28 +59,30 @@ public class PacketCapture {
                         @Override
                         public void gotPacket(Packet packet) {
                             IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
-                            if (ipV4Packet != null) {
-                                ExtractedPacket extractedPacket = extractPacket(ipV4Packet);
-                                packets.put(packetCount, extractedPacket);
-                                packetCount++;
-                                //Notify listeners (eventcontroller)
-                                if (listener != null) {
-                                    listener.onPacketCaptured(extractedPacket);
+                            if (ipV4Packet != null) { // Check if packet captured
+                                ExtractedPacket extractedPacket = extractPacket(ipV4Packet); // Extract packet into my own format
+                                String selectedProtocol = controller.getProtocolFilter(); // Check for filter each time
+                                if (selectedProtocol.equals("All") || extractedPacket.getProtocol().name().equalsIgnoreCase(selectedProtocol)) { // Check whether we are filtering the packet protocol out
+                                    packets.put(packetCount, extractedPacket);
+                                    packetCount++;
+                                    //Notify listeners (eventcontroller)
+                                    if (listener != null) {
+                                        listener.onPacketCaptured(extractedPacket);
+                                    }
                                 }
                                 // Optional: stop after 100 packets for testing
                                 //Hard coded, not changeable
                                 if (packetCount >= 100) {
-                                    try {
-                                        handle.breakLoop();
-                                    } catch (NotOpenException e) {
-                                        e.printStackTrace();
-                                    }
+                                    stopCapture();
                                 }
                             }
                         }
                     });
 
-                } catch (InterruptedException | PcapNativeException | NotOpenException e) {
+                } catch (InterruptedException e) {
+                    System.out.println("Capture thread was interrupted. Stopping capture.");
+                } catch (PcapNativeException | NotOpenException e) {
+                    System.out.println("Unexpected error during capture:");
                     e.printStackTrace();
                 }
             });
@@ -96,15 +93,17 @@ public class PacketCapture {
         captureThread.start();
     }
 
-    public static void stopCapture() {
-        System.out.println("Stopping Capture");
+    public void stopCapture() {
+
         if (handle.isOpen()) {
+            System.out.println("Stopping Capture");
             try {
                 handle.breakLoop();
             } catch (NotOpenException e) {
                 System.out.println("Already stopped");
             }
         }
+        /*
         if (captureThread != null && captureThread.isAlive()) {
             captureThread.interrupt();
             try {
@@ -113,7 +112,7 @@ public class PacketCapture {
             } catch (InterruptedException e) {
                 System.out.println("Interrupted while waiting for thread to stop");
             }
-        }
+        }*/
     }
 
     //Not used

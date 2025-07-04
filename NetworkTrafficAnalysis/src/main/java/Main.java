@@ -16,9 +16,8 @@ public class Main {
     public static void main(String[] args) {
         
         //String[][] packetArr = pc.packetsTo2dArray();
-        EventController controller = new EventController();
-        MainFrame f = new MainFrame(controller);
-        PacketCapture.setPacketListener(f);
+        
+        MainFrame f = new MainFrame();
 
     }
     
