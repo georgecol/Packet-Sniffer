@@ -15,6 +15,7 @@ import org.pcap4j.core.*;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.IpV4Packet.IpV4Header;
+import org.pcap4j.packet.IpV6Packet;
 import org.pcap4j.packet.Packet;
 
 /**
@@ -58,10 +59,22 @@ public class PacketCapture {
 
                         @Override
                         public void gotPacket(Packet packet) {
+
                             IpV4Packet ipV4Packet = packet.get(IpV4Packet.class);
-                            if (ipV4Packet != null) { // Check if packet captured
-                                ExtractedPacket extractedPacket = extractPacket(ipV4Packet); // Extract packet into my own format
+                            IpV6Packet ipV6Packet = packet.get(org.pcap4j.packet.IpV6Packet.class);
+
+                            ExtractedPacket extractedPacket = null;
+
+                            if (ipV4Packet != null) {
+                                extractedPacket = extractPacket(ipV4Packet);
+                            } else if (ipV6Packet != null) {
+                                extractedPacket = extractPacket(ipV6Packet);
+                            }
+
+                            if (extractedPacket != null) { // Check if packet captured
+
                                 String selectedProtocol = controller.getProtocolFilter(); // Check for filter each time
+                                
                                 if (selectedProtocol.equals("All") || extractedPacket.getProtocol().name().equalsIgnoreCase(selectedProtocol)) { // Check whether we are filtering the packet protocol out
                                     packets.put(packetCount, extractedPacket);
                                     packetCount++;
@@ -147,15 +160,29 @@ public class PacketCapture {
 
     }
 
+    //Ipv4
     private static ExtractedPacket extractPacket(IpV4Packet ippac) {
         ExtractedPacket exP = new ExtractedPacket();
         IpV4Header header = ippac.getHeader();
 
-        exP.setOriginalPacket(ippac);
+        exP.setOriginalIpV4Packet(ippac);
         exP.setProtocol(header.getProtocol());
         exP.setDstIp(header.getDstAddr());
         exP.setSrcIp(header.getSrcAddr());
         exP.setTotalLength(header.getTotalLengthAsInt());
+        return exP;
+    }
+
+    //V6
+    private static ExtractedPacket extractPacket(org.pcap4j.packet.IpV6Packet ippac) {
+        ExtractedPacket exP = new ExtractedPacket();
+        org.pcap4j.packet.IpV6Packet.IpV6Header header = ippac.getHeader();
+
+        exP.setOriginalIpV6Packet(ippac);
+        exP.setProtocol(header.getNextHeader());
+        exP.setDstIp(header.getDstAddr());
+        exP.setSrcIp(header.getSrcAddr());
+        exP.setTotalLength(ippac.length());
         return exP;
     }
 

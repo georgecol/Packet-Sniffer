@@ -52,7 +52,7 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         gbc = new GridBagConstraints();
         initUI();
-        setupTableCellRenderer();
+
         this.setVisible(true);
     }
 
@@ -82,6 +82,7 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         });
 
         initTable();
+        setupTableCellRenderer();
         initButtons();
 
     }
@@ -95,28 +96,33 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
                 Component c = super.getTableCellRendererComponent(table, value,
                         isSelected, hasFocus, row, column);
 
-                // Get protocol column index
-                int protocolColumnIndex = 3; // Assuming "Protocol" column index is 3
+                // Get the protocol and IP address of the current row
+                String protocol = (String) table.getValueAt(row, 3); // column 3 = protocol
+                String srcIp = (String) table.getValueAt(row, 1);    // column 1 = source IP
+                String dstIp = (String) table.getValueAt(row, 2);    // column 2 = destination IP
 
-                // Get protocol value from the table model
-                Object protocolValue = table.getModel().getValueAt(row, protocolColumnIndex);
+                // Determine if either IP is IPv6
+                boolean isIPv6 = srcIp.contains(":") || dstIp.contains(":");
 
                 // Check protocol value and set background color accordingly
-                if (protocolValue != null) {
-                    String protocol = protocolValue.toString();
-                    switch (protocol) {
+                //Set different background for v6 packet
+                if (isSelected) {
+                    c.setBackground(table.getSelectionBackground());
+                } else if (isIPv6) {
+                    c.setBackground(new Color(200, 255, 200)); // Light green for IPv6
+                } else {
+                    // Color based on protocol (example)
+                    switch (protocol.toUpperCase()) {
                         case "TCP":
-                            c.setBackground(Color.LIGHT_GRAY); // Example color for TCP
+                            c.setBackground(new Color(255, 200, 200)); // Light red for TCP
                             break;
                         case "UDP":
-                            c.setBackground(Color.GRAY); // Example color for UDP
+                            c.setBackground(new Color(200, 200, 255)); // Light blue for UDP
                             break;
                         default:
-                            c.setBackground(table.getBackground()); // Default color
+                            c.setBackground(table.getBackground()); // Default
                             break;
                     }
-                } else {
-                    c.setBackground(table.getBackground()); // Default color
                 }
 
                 return c;

@@ -27,7 +27,7 @@ public class FilterPanel extends JPanel {
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
         filterLabel = new JLabel("Filter by Protocol:");
-        String[] protocols = {"All", "TCP", "UDP", "ICMP"}; // Add more if needed
+        String[] protocols = {"All", "TCP", "UDP", "ICMPv4"}; // Add more if needed
         protocolBox = new JComboBox<>(protocols);
         filterStartBtn = new JButton("Apply Filter");
         filterStartBtn.setActionCommand(Command.RESET.name());
