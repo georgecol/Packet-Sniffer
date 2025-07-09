@@ -7,6 +7,8 @@ package View;
 import Model.*;
 import Controller.*;
 import Model.ExtractedPacket;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -19,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import org.pcap4j.packet.IpV4Packet;
 
@@ -49,7 +52,7 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         gbc = new GridBagConstraints();
         initUI();
-
+        setupTableCellRenderer();
         this.setVisible(true);
     }
 
@@ -81,6 +84,44 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         initTable();
         initButtons();
 
+    }
+
+    private void setupTableCellRenderer() {
+        packetTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus,
+                    int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value,
+                        isSelected, hasFocus, row, column);
+
+                // Get protocol column index
+                int protocolColumnIndex = 3; // Assuming "Protocol" column index is 3
+
+                // Get protocol value from the table model
+                Object protocolValue = table.getModel().getValueAt(row, protocolColumnIndex);
+
+                // Check protocol value and set background color accordingly
+                if (protocolValue != null) {
+                    String protocol = protocolValue.toString();
+                    switch (protocol) {
+                        case "TCP":
+                            c.setBackground(Color.LIGHT_GRAY); // Example color for TCP
+                            break;
+                        case "UDP":
+                            c.setBackground(Color.GRAY); // Example color for UDP
+                            break;
+                        default:
+                            c.setBackground(table.getBackground()); // Default color
+                            break;
+                    }
+                } else {
+                    c.setBackground(table.getBackground()); // Default color
+                }
+
+                return c;
+            }
+        });
     }
 
     public void initTable() {
