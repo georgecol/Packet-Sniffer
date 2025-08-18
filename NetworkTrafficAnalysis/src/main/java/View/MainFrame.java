@@ -206,6 +206,7 @@ public class MainFrame extends JFrame implements PacketListenerCallback {
         });
     }
 
+    //Unfinished
     public void setNetworkCards() {
 
         networkCards.addItem("Ethernet");
